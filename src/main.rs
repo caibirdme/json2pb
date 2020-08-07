@@ -18,18 +18,22 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error + 'static>>;
 fn main() -> Result<()> {
     let cmd_opt = cmd_args();
     let source_code = read_file(&cmd_opt.input)?;
-    let json_value = parse_json(unsafe {std::str::from_utf8_unchecked(&source_code)})?;
-    let obj = pbgen::visit_json_root(&json_value)?;
-    let result = pbgen::gen_pb_def(&obj);
+    let result = parse_and_gen(unsafe {std::str::from_utf8_unchecked(&source_code)})?;
     if let Some(out) = cmd_opt.output {
         let output = current_dir()?.join(out);
         OpenOptions::new().create(true).truncate(true)
             .open(output)?
-            .write_all(result.as_bytes());
+            .write_all(result.as_bytes())?;
     } else {
         println!("{}", result);
     }
     Ok(())
+}
+
+fn parse_and_gen(source_code: &str) -> Result<String> {
+    let json_value = parse_json(source_code)?;
+    let obj = pbgen::visit_json_root(&json_value)?;
+    Ok(pbgen::gen_pb_def(&obj))
 }
 
 struct CmdOpt {
@@ -74,15 +78,52 @@ fn cmd_args() -> CmdOpt {
 
 fn parse_json(source_code: &str) -> Result<parser::JsonValue> {
     match parser::root::<VerboseError<&str>>(source_code) {
-        Ok((_, jsonValue)) => Ok(jsonValue),
+        Ok((_, json_value)) => Ok(json_value),
         Err(nom::Err::Error(e)) => {
             Err(convert_error(source_code, e).into())
         },
         Err(nom::Err::Failure(e)) => {
             Err(convert_error(source_code, e).into())
         },
-        Err(nom::Err::Incomplete(v)) => {
+        Err(nom::Err::Incomplete(_)) => {
             Err("incomplete json".into())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use nom::lib::std::collections::HashMap;
+
+    #[test]
+    fn test_parse_and_gen() -> Result<()> {
+        let path = current_dir()?.join("tests/pairs");
+        let dirs = fs::read_dir(path)?;
+        let mut input = HashMap::new();
+        let mut expect = HashMap::new();
+        for dir in dirs {
+            let dir = dir?;
+            let file_name = dir.file_name();
+            let f_name = file_name.to_str().unwrap();
+            if f_name.ends_with(".json") {
+                input.insert(f_name.strip_suffix(".json").unwrap().to_string(), dir.path());
+            } else {
+                expect.insert(f_name.strip_suffix(".expect").unwrap().to_string(), dir.path());
+            }
+        }
+        for (id, path) in input {
+            let mut ifd = OpenOptions::new().read(true).open(path)?;
+            let mut source_code = vec![];
+            ifd.read_to_end(&mut source_code)?;
+            let actual = parse_and_gen(unsafe {std::str::from_utf8_unchecked(&source_code)})?;
+            let expect_path = expect.get(&id).unwrap();
+            let mut efd = OpenOptions::new().read(true).open(expect_path)?;
+            let mut expect_data = vec![];
+            efd.read_to_end(&mut expect_data)?;
+            assert_eq!(actual, std::str::from_utf8(&expect_data)?);
+        }
+        Ok(())
     }
 }

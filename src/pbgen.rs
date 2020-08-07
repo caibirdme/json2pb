@@ -25,10 +25,10 @@ fn visit_json_ele(v: &parser::JsonValue) -> Result<BaseValue> {
         &parser::JsonValue::Num(num) => {
             Ok(BaseValue::Scalar(parse_num(num)))
         },
-        parser::JsonValue::Boolean(b) => {
+        parser::JsonValue::Boolean(_) => {
             Ok(BaseValue::Scalar(ScalarValue::Bool))
         },
-        parser::JsonValue::Str(st) => {
+        parser::JsonValue::Str(_) => {
             Ok(BaseValue::Scalar(ScalarValue::Str))
         },
         parser::JsonValue::Array(arr) => {
@@ -85,10 +85,10 @@ fn visit_list_ele(v: &parser::JsonValue) -> Result<ListEle> {
         &parser::JsonValue::Num(num) => {
             Ok(ListEle::Scalar(parse_num(num)))
         },
-        parser::JsonValue::Boolean(b) => {
+        parser::JsonValue::Boolean(_) => {
             Ok(ListEle::Scalar(ScalarValue::Bool))
         },
-        parser::JsonValue::Str(st) => {
+        parser::JsonValue::Str(_) => {
             Ok(ListEle::Scalar(ScalarValue::Str))
         },
     }
@@ -152,7 +152,7 @@ impl Message {
             match &field.field_type {
                 BaseValue::Scalar(s) => buf.write_with_ident(s.to_string().as_str()),
                 BaseValue::Message(obj) => {
-                    let type_name = field.field_name.to_uppercase();
+                    let type_name = to_message_name(&field.field_name);
                     nested_obj.insert(type_name.clone(), obj);
                     buf.write_with_ident(type_name.as_str());
                 },
@@ -162,9 +162,9 @@ impl Message {
                     match ele {
                         ListEle::Scalar(s) => buf.write(s.to_string().as_str()),
                         ListEle::Message(obj) => {
-                            let type_name = field.field_name.to_uppercase();
+                            let type_name = to_message_name(&field.field_name);
                             nested_obj.insert(type_name.clone(), obj);
-                            buf.write_with_ident(type_name.as_str());
+                            buf.write(type_name.as_str());
                         }
                     }
                 }
@@ -243,5 +243,40 @@ impl IdentBuffer {
     }
     pub fn to_string(&self) -> String {
         self.buf.clone()
+    }
+}
+
+fn to_message_name(s: &str) -> String {
+    if s.is_empty() {
+        return "".to_owned();
+    }
+    let arr = s.split('_').collect::<Vec<&str>>();
+    let mut r = vec![];
+    let mut q: Vec<char> = vec![];
+    for v in arr {
+        q.clear();
+        let mut it = v.chars();
+        q.push(it.next().unwrap().to_uppercase().next().unwrap());
+        it.for_each(|v| q.push(v.to_lowercase().next().unwrap()));
+        r.append(&mut q);
+    }
+    r.into_iter().collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::to_message_name;
+
+    #[test]
+    fn test_to_message_name() {
+        let test_cases = vec![
+            ("foo", "Foo"),
+            ("foo_bar_baz", "FooBarBaz"),
+            ("", ""),
+            ("FOO_BAR_BAZ", "FooBarBaz"),
+        ];
+        for (s, expect) in test_cases {
+            assert_eq!(to_message_name(s), expect);
+        }
     }
 }

@@ -1,0 +1,23 @@
+message root_data {
+    HiAll hi_all = 1;
+    int64 age = 2;
+    string name = 3;
+    repeated string hobby = 4;
+    repeated int64 likes = 5;
+
+    message HiAll {
+        string bar = 1;
+        Ttt ttt = 2;
+        repeated Www www = 3;
+
+        message Ttt {
+            double qq = 1;
+
+        }
+        message Www {
+            int64 qwe = 1;
+            repeated int64 ert = 2;
+
+        }
+    }
+}

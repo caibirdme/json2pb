@@ -3,7 +3,7 @@
   "age": 26,
   "hobby": ["football", "jogging", "swimming"],
   "likes": [1, 2, 3],
-  "f\"oo": {
+  "hi_all": {
     "bar": "baz",
     "ttt": {
       "qq": 123.4
@@ -11,7 +11,7 @@
     "www": [
       {
         "qwe": 123,
-        "ert": [4.0, 5.2]
+        "ert": [4.0, 5.0]
       }
     ]
   }
