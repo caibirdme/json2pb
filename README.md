@@ -1,3 +1,5 @@
+[![master Actions Status](https://github.com/caibirdme/json2pb/workflows/master/badge.svg)](https://github.com/caibirdme/json2pb/actions)
+
 ### json2pb
 json2pb is a simple cli tool that can convert a json object to a protobuf message.
 
