@@ -243,18 +243,21 @@ impl IdentBuffer {
     }
 }
 
+const DEFAULT_MSG_NAME: &str = "DefaultMessageName";
+
 fn to_message_name(s: &str) -> String {
     if s.is_empty() {
-        return "".to_owned();
+        return DEFAULT_MSG_NAME.to_string();
     }
-    let arr = s.split('_').collect::<Vec<&str>>();
+    let arr = s.split('_').filter(|v| !v.is_empty()).collect::<Vec<&str>>();
     let mut r = vec![];
     let mut q: Vec<char> = vec![];
     for v in arr {
         q.clear();
         let mut it = v.chars();
-        q.push(it.next().unwrap().to_uppercase().next().unwrap());
-        it.for_each(|v| q.push(v.to_lowercase().next().unwrap()));
+        let first_char = it.next().unwrap();
+        q.push(first_char.to_uppercase().next().unwrap_or(first_char));
+        it.for_each(|v| q.push(v.to_lowercase().next().unwrap_or(v)));
         r.append(&mut q);
     }
     r.into_iter().collect()
@@ -262,15 +265,18 @@ fn to_message_name(s: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::to_message_name;
+    use super::*;
 
     #[test]
     fn test_to_message_name() {
         let test_cases = vec![
             ("foo", "Foo"),
             ("foo_bar_baz", "FooBarBaz"),
-            ("", ""),
+            ("", DEFAULT_MSG_NAME),
             ("FOO_BAR_BAZ", "FooBarBaz"),
+            ("foo_4321", "Foo4321"),
+            ("foO_123_bAR_4", "Foo123Bar4"),
+            ("___foo___bar", "FooBar"),
         ];
         for (s, expect) in test_cases {
             assert_eq!(to_message_name(s), expect);
