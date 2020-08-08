@@ -11,18 +11,18 @@ Converting a json request and response to pb message, and add your own service d
 * you must install `rust` dev environment first.
 * `git clone https://github.com/caibirdme/json2pb.git`
 * `cd {dir}/json2pb`
-* `cargo install`
+* `cargo install --path . --bin j2pb`
 
 ### usage
-json2pb -h
+j2pb -h
 
 ```
-json2pb 0.1.0
+j2pb 0.1.0
 ronaldoliu@tencent.com
 convert json to protobuf3
 
 USAGE:
-    json2pb [OPTIONS] -f <file>
+    j2pb [OPTIONS] -f <file>
 
 FLAGS:
     -h, --help       Prints help information
@@ -36,12 +36,12 @@ OPTIONS:
 
 example:
 ```
-json2pb -f test.json
+j2pb -f test.json
 # this will print generated protobuf message on the screen(stdout)
 ```
 
 ```
-json2pb -f test.json -o test.proto
+j2pb -f test.json -o test.proto
 # this will create test.proto file and save generated protobuf message in it
 ```
 
