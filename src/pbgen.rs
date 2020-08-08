@@ -3,8 +3,6 @@ use super::{
     Result,
 };
 
-use std::collections::{HashMap, BTreeMap};
-
 pub fn visit_json_root(v: &parser::JsonValue) -> Result<Message> {
     if let parser::JsonValue::Object(h) = v {
         let mut obj = Message::new();
@@ -144,8 +142,7 @@ impl Message {
         buf.write(name);
         buf.writeln(" {");
         buf.add_ident(TAB_SPACE);
-        // 用BTreeMap保证遍历顺序
-        let mut nested_obj = BTreeMap::new();
+        let mut nested_obj = vec![];
         for (seq, field) in self.0.iter().enumerate() {
             // 从1开始
             let seq = seq + 1;
@@ -153,7 +150,7 @@ impl Message {
                 BaseValue::Scalar(s) => buf.write_with_ident(s.to_string().as_str()),
                 BaseValue::Message(obj) => {
                     let type_name = to_message_name(&field.field_name);
-                    nested_obj.insert(type_name.clone(), obj);
+                    nested_obj.push((type_name.clone(), obj));
                     buf.write_with_ident(type_name.as_str());
                 },
                 BaseValue::List(ele) =>{
@@ -163,7 +160,7 @@ impl Message {
                         ListEle::Scalar(s) => buf.write(s.to_string().as_str()),
                         ListEle::Message(obj) => {
                             let type_name = to_message_name(&field.field_name);
-                            nested_obj.insert(type_name.clone(), obj);
+                            nested_obj.push((type_name.clone(), obj));
                             buf.write(type_name.as_str());
                         }
                     }

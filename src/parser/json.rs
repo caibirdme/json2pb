@@ -9,7 +9,6 @@ use nom::{
     sequence::{delimited, preceded, separated_pair, terminated},
     IResult,
 };
-use std::collections::HashMap;
 use std::str;
 
 #[derive(Debug, PartialEq)]
