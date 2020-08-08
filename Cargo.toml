@@ -1,8 +1,12 @@
 [package]
 name = "json2pb"
 version = "0.1.0"
-authors = ["ronaldoliu"]
+authors = ["ronaldoliu@tencent.com"]
 edition = "2018"
+license = "Apache-2.0"
+repository = "https://github.com/caibirdme/json2pb"
+readme = "README.md"
+keywords = ["json", "protobuf"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
