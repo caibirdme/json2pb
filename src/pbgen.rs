@@ -59,7 +59,7 @@ fn parse_num(num:f64) -> ScalarValue {
     }
 }
 
-fn parse_object(obj: &HashMap<String, parser::JsonValue>) -> Result<Message> {
+fn parse_object(obj: &Vec<(String, parser::JsonValue)>) -> Result<Message> {
     if obj.is_empty() {
         Err("cannot inference object type".into())
     } else {
@@ -176,7 +176,7 @@ impl Message {
             buf.writeln(";");
         }
 
-        buf.writeln_with_ident("");
+        buf.writeln("");
 
         for (k,v) in nested_obj {
             v.gen(buf, &k);

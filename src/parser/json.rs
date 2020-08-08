@@ -18,7 +18,7 @@ pub enum JsonValue {
     Boolean(bool),
     Num(f64),
     Array(Vec<JsonValue>),
-    Object(HashMap<String, JsonValue>),
+    Object(Vec<(String, JsonValue)>),
 }
 
 fn sp<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
@@ -108,7 +108,7 @@ fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 
 fn hash<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
-) -> IResult<&'a str, HashMap<String, JsonValue>, E> {
+) -> IResult<&'a str, Vec<(String, JsonValue)>, E> {
     context(
         "map",
         preceded(
