@@ -9,11 +9,11 @@ use std::{
 };
 use std::fs::OpenOptions;
 use std::io::{Read, Write};
-
-mod parser;
-mod pbgen;
-
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error + 'static>>;
+use ::json2pb::{
+    Result,
+    pbgen,
+    parser,
+};
 
 fn main() -> Result<()> {
     let cmd_opt = cmd_args();
@@ -42,8 +42,8 @@ struct CmdOpt {
 }
 
 fn read_file<P: AsRef<Path>>(p: P) -> Result<Vec<u8>> {
-    let cdr = dbg!(current_dir()?);
-    let full_path = dbg!(cdr.join(p));
+    let cdr = current_dir()?;
+    let full_path = cdr.join(p);
     let mut fd = OpenOptions::new().read(true).open(full_path)?;
     let mut data = vec![];
     fd.read_to_end(&mut data)?;
@@ -51,8 +51,8 @@ fn read_file<P: AsRef<Path>>(p: P) -> Result<Vec<u8>> {
 }
 
 fn cmd_args() -> CmdOpt {
-    let matches = App::new("json2pb")
-        .version("0.1.0")
+    let matches = App::new("j2pb")
+        .version(env!("CARGO_PKG_VERSION"))
         .about("convert json to protobuf3")
         .author("ronaldoliu@tencent.com")
         .arg(Arg::with_name("file")

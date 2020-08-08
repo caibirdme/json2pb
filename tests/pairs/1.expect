@@ -13,12 +13,10 @@ message root_data {
 
         message Ttt {
             double qq = 1;
-
         }
         message Www {
             int64 qwe = 1;
             repeated int64 ert = 2;
-
         }
     }
 }

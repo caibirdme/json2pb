@@ -173,10 +173,11 @@ impl Message {
             buf.writeln(";");
         }
 
-        buf.writeln("");
-
-        for (k,v) in nested_obj {
-            v.gen(buf, &k);
+        if !nested_obj.is_empty() {
+            buf.writeln("");
+            for (k,v) in nested_obj {
+                v.gen(buf, &k);
+            }
         }
 
         buf.dec_ident(TAB_SPACE);
