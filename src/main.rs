@@ -65,7 +65,7 @@ fn cmd_args() -> CmdOpt {
             .required(false)
             .takes_value(true)
             .short("o")
-            .help("specify file to save generated proto")
+            .help("specify file to save generated proto(default: stdout)")
         )
         .get_matches();
     let input = matches.value_of("file").unwrap().to_string();
