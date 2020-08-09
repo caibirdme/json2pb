@@ -3,7 +3,7 @@ use nom::{
     bytes::complete::{escaped, tag, take_while, take_till1, take_while_m_n},
     character::complete::char,
     combinator::{cut, map, opt, value, peek},
-    error::{context, ContextError, ParseError},
+    error::{context, ContextError, ParseError, VerboseError, convert_error},
     multi::separated_list0,
     number::complete::double,
     sequence::{delimited, preceded, separated_pair, terminated},
@@ -145,12 +145,30 @@ fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 }
 
 /// the root element of a JSON parser is either an object or an array
-pub fn root<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
-    i: &'a str,
-) -> IResult<&'a str, JsonValue, E> {
+fn root(
+    i: &str,
+) -> IResult<&str, JsonValue, VerboseError<&str>> {
     delimited(
         sp,
         alt((map(hash, JsonValue::Object), map(array, JsonValue::Array))),
         opt(sp),
     )(i)
+}
+
+/// parse a root json object
+pub fn parse_root(i: &str) -> Result<JsonValue, Box<dyn std::error::Error + 'static>> {
+    match root(i) {
+        Ok((_, json_value)) => {
+            Ok(json_value)
+        },
+        Err(nom::Err::Error(e)) => {
+            Err(convert_error(i, e).into())
+        },
+        Err(nom::Err::Failure(e)) => {
+            Err(convert_error(i, e).into())
+        },
+        Err(nom::Err::Incomplete(_)) => {
+            Err("incomplete json".into())
+        }
+    }
 }

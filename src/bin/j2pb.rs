@@ -1,8 +1,4 @@
 use clap::{App, Arg};
-use nom::error::{
-    VerboseError,
-    convert_error,
-};
 use std::{
     env::current_dir,
     path::Path,
@@ -77,18 +73,7 @@ fn cmd_args() -> CmdOpt {
 }
 
 fn parse_json(source_code: &str) -> Result<parser::JsonValue> {
-    match parser::root::<VerboseError<&str>>(source_code) {
-        Ok((_, json_value)) => Ok(json_value),
-        Err(nom::Err::Error(e)) => {
-            Err(convert_error(source_code, e).into())
-        },
-        Err(nom::Err::Failure(e)) => {
-            Err(convert_error(source_code, e).into())
-        },
-        Err(nom::Err::Incomplete(_)) => {
-            Err("incomplete json".into())
-        }
-    }
+    parser::parse_root(source_code)
 }
 
 #[cfg(test)]

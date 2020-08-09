@@ -24,7 +24,7 @@
 //!     }
 //! "#;
 //!
-//! let (_, json_value) = parser::root::<VerboseError<&str>>(json_code).unwrap();
+//! let json_value = parser::parse_root(json_code).unwrap();
 //! let json_2_pb_ast = pbgen::visit_json_root(&json_value).unwrap();
 //! let generated_pb_message = pbgen::gen_pb_def(&json_2_pb_ast);
 //! assert_eq!(generated_pb_message, r#"message root_data {
