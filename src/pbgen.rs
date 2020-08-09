@@ -33,8 +33,35 @@ fn visit_json_ele(v: &parser::JsonValue) -> Result<BaseValue> {
             if arr.is_empty() {
                 Err("cannot inference element's type of array".into())
             } else {
-                let ele_type = visit_list_ele(&arr[0])?;
-                Ok(BaseValue::List(ele_type))
+                let mut ele_type: Option<ListEle> = Some(visit_list_ele(&arr[0])?);
+                // make sure
+                for ele in arr.iter().skip(1) {
+                    let next_type = visit_list_ele(ele)?;
+                    let suggest = match (ele_type.take(), next_type) {
+                        (Some(ListEle::Message(x)), ListEle::Message(y)) => {
+                            if x.0.len() < y.0.len() {
+                                Some(ListEle::Message(y))
+                            } else {
+                                None
+                            }
+                        },
+                        (Some(ListEle::Scalar(x)), ListEle::Scalar(y)) => {
+                            let suggest_type = x.justify_type(&y);
+                            if let Some(t) = suggest_type {
+                                Some(ListEle::Scalar(t))
+                            } else {
+                                Err("elements in list must have the same type")?
+                            }
+                        },
+                        _ => {
+                            Err("elements in list must have the same type")?
+                        }
+                    };
+                    if let Some(sgt) = suggest {
+                        ele_type = Some(sgt);
+                    }
+                }
+                Ok(BaseValue::List(ele_type.unwrap()))
             }
         },
         parser::JsonValue::Object(obj) => {
@@ -108,6 +135,17 @@ impl ScalarValue{
             ScalarValue::Double => "double",
             ScalarValue::Int64 => "int64",
         }.to_owned()
+    }
+    fn justify_type(&self, other: &Self) -> Option<Self> {
+        match (self, other) {
+            (ScalarValue::Bool, ScalarValue::Bool) => Some(ScalarValue::Bool),
+            (ScalarValue::Double, ScalarValue::Double) => Some(ScalarValue::Double),
+            (ScalarValue::Int64, ScalarValue::Int64) => Some(ScalarValue::Int64),
+            (ScalarValue::Str, ScalarValue::Str) => Some(ScalarValue::Str),
+            (ScalarValue::Double, ScalarValue::Int64) => Some(ScalarValue::Double),
+            (ScalarValue::Int64, ScalarValue::Double) => Some(ScalarValue::Double),
+            _ => None,
+        }
     }
 }
 

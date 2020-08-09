@@ -46,7 +46,9 @@ j2pb -f test.json -o test.proto
 ```
 
 ### NOTICE
-protobuf itself doesn't support nested array, so you can't convert json with nested array, like:
+
+#### proto doesn't support nested array
+protobuf itself doesn't support nested array, so you **can't** convert json with nested array, like:
 ```json
 {
   "foo": [
@@ -56,7 +58,38 @@ protobuf itself doesn't support nested array, so you can't convert json with nes
 }
 ```
 
-And json itself just supports double type, but most often, people use it to store integer.
+#### convert double to int64 if possible
+
+JSON itself just supports double type, but most often, people use it to store integer.
 So json2pb will try to convert a double value T to int64 if it satisfies both the two constraints:
 * (T.floor()-T).abs() < f64::EPSILON // means T is an integer
 * `-(2^53-1) <= T <= 2^53-1`  // double can only store integer in this range precisely
+
+#### Automatically choose the most possible object as the message def
+We always see JSON like this:
+```json
+{
+  "bar": [
+    {
+      "name": "deen"
+    },
+    {
+      "name": "caibirdme",
+      "age": 26
+    }
+  ]
+}
+```
+Due to some reasons, some element may be not complete, so json2pb will choose the most possible object(object with most keys) as the message definition.
+
+So the generated message will be:
+```
+message root_data {
+    repeated Bar bar = 1;
+    
+    message Bar {
+        string name = 1;
+        int64 age = 2;
+    }   
+}
+```
