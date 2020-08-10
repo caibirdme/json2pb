@@ -31,7 +31,7 @@ fn visit_json_ele(v: &parser::JsonValue) -> Result<BaseValue> {
         },
         parser::JsonValue::Array(arr) => {
             if arr.is_empty() {
-                Err("cannot inference element's type of array".into())
+                Ok(BaseValue::List(ListEle::Any))
             } else {
                 let mut ele_type: Option<ListEle> = Some(visit_list_ele(&arr[0])?);
                 // make sure
@@ -40,15 +40,15 @@ fn visit_json_ele(v: &parser::JsonValue) -> Result<BaseValue> {
                     let suggest = match (ele_type.take(), next_type) {
                         (Some(ListEle::Message(x)), ListEle::Message(y)) => {
                             if x.0.len() < y.0.len() {
-                                Some(ListEle::Message(y))
+                                ListEle::Message(y)
                             } else {
-                                None
+                                ListEle::Message(x)
                             }
                         },
                         (Some(ListEle::Scalar(x)), ListEle::Scalar(y)) => {
                             let suggest_type = x.justify_type(&y);
                             if let Some(t) = suggest_type {
-                                Some(ListEle::Scalar(t))
+                                ListEle::Scalar(t)
                             } else {
                                 Err("elements in list must have the same type")?
                             }
@@ -57,9 +57,7 @@ fn visit_json_ele(v: &parser::JsonValue) -> Result<BaseValue> {
                             Err("elements in list must have the same type")?
                         }
                     };
-                    if let Some(sgt) = suggest {
-                        ele_type = Some(sgt);
-                    }
+                    ele_type = Some(suggest);
                 }
                 Ok(BaseValue::List(ele_type.unwrap()))
             }
@@ -163,6 +161,7 @@ pub struct ObjField {
 pub enum ListEle {
     Scalar(ScalarValue),
     Message(Message),
+    Any,
 }
 
 pub struct Message(Vec<ObjField>);
@@ -200,7 +199,8 @@ impl Message {
                             let type_name = to_message_name(&field.field_name);
                             nested_obj.push((type_name.clone(), obj));
                             buf.write(type_name.as_str());
-                        }
+                        },
+                        ListEle::Any => buf.write(KW_ANY),
                     }
                 }
             }
@@ -225,6 +225,7 @@ impl Message {
 
 const KW_MESSAGE: &str = "message";
 const KW_REPEATED: &str = "repeated";
+const KW_ANY: &str = "google.protobuf.Any";
 
 const TAB_SPACE: usize = 4;
 

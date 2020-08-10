@@ -20,7 +20,17 @@
 //! let json_code = r#"
 //!     {
 //!         "name": "deen",
-//!         "age": 26
+//!         "score": 98.5,
+//!         "list": [
+//!              {
+//!                  "i_name": "deen"
+//!              },
+//!              {
+//!                  "i_name": "caibirdme",
+//!                  "i_age": 26
+//!              }
+//!          ],
+//!          "foo": []
 //!     }
 //! "#;
 //!
@@ -29,7 +39,14 @@
 //! let generated_pb_message = pbgen::gen_pb_def(&json_2_pb_ast);
 //! assert_eq!(generated_pb_message, r#"message root_data {
 //!     string name = 1;
-//!     int64 age = 2;
+//!     double score = 2;
+//!     repeated List list = 3;
+//!     repeated google.protobuf.Any foo = 4;
+//!
+//!     message List {
+//!         string i_name = 1;
+//!         int64 i_age = 2;
+//!     }
 //! }
 //! "#);
 //! ```

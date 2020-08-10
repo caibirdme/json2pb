@@ -1,0 +1,9 @@
+message root_data {
+    repeated List list = 1;
+    repeated google.protobuf.Any foo = 2;
+
+    message List {
+        string name = 1;
+        int64 age = 2;
+    }
+}
