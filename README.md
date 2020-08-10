@@ -1,4 +1,5 @@
 [![master Actions Status](https://github.com/caibirdme/json2pb/workflows/master/badge.svg)](https://github.com/caibirdme/json2pb/actions)
+[![Crates.io Version](https://img.shields.io/crates/v/json2pb.svg)](https://crates.io/crates/json2pb)
 
 ### json2pb
 json2pb is a simple cli tool that can convert a json object to a protobuf message.
@@ -93,3 +94,20 @@ message root_data {
     }   
 }
 ```
+
+#### Empty array
+In json, there's always empty array, like:
+```json
+{
+  "foo": []
+}
+```
+This case, json2pb cannot inference its type. So the only way is to convert it as:
+```proto
+import "google/protobuf/any.proto";
+
+message root_data {
+    repeated google.protobuf.Any foo = 1;
+}
+```
+And make sure your target language support Any type.
